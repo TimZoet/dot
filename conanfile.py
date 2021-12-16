@@ -1,54 +1,79 @@
-import re
-
 from conans import ConanFile
-from conans.tools import load
-from conan.tools.cmake import CMakeToolchain, CMake
-from conan.tools.layout import cmake_layout
-
-def get_version():
-    try:
-        content = load("modules/dot/dotVersionString.cmake")
-        version = re.search("set\(DOT_VERSION (\d+\.\d+\.\d+)\)", content).group(1)
-        return version.strip()
-    except Exception as e:
-        return None
 
 class DotConan(ConanFile):
+    ############################################################################
+    ## Package info.                                                          ##
+    ############################################################################
+    
     name = "dot"
-    version = get_version()
-
-    # Optional metadata
-    license = "GNU AFFERO GENERAL PUBLIC LICENSE Version 3"
-    author = "Tim Zoet"
-    url = "https://github.com/TimZoet/dot"
+    
     description = "C++ library for writing DOT files."
+    
+    url = "https://github.com/TimZoet/dot"
 
-    # Binary configuration
-    settings = "os", "compiler", "build_type", "arch"
-    options = {"fPIC": [True, False]}
-    default_options = {"fPIC": True}
+    ############################################################################
+    ## Settings.                                                              ##
+    ############################################################################
 
-    exports_sources = "CMakeLists.txt", "readme.md", "cmake/*", "modules/*"
-
+    python_requires = "pyreq/1.0.0@timzoet/stable"
+    
+    python_requires_extend = "pyreq.BaseConan"
+    
+    ############################################################################
+    ## Base methods.                                                          ##
+    ############################################################################
+    
+    def set_version(self):
+        base = self.python_requires["pyreq"].module.BaseConan
+        base.set_version(self, "modules/dot/dotVersionString.cmake", "DOT_VERSION")
+    
+    def init(self):
+        base = self.python_requires["pyreq"].module.BaseConan
+        self.generators = base.generators + self.generators
+        self.settings = base.settings + self.settings
+        self.options = {**base.options, **self.options}
+        self.default_options = {**base.default_options, **self.default_options}
+    
+    ############################################################################
+    ## Building.                                                              ##
+    ############################################################################
+    
+    def export_sources(self):
+        self.copy("CMakeLists.txt")
+        self.copy("license")
+        self.copy("readme.md")
+        self.copy("cmake/*")
+        self.copy("modules/CMakeLists.txt")
+        self.copy("modules/dot/*")
+    
     def config_options(self):
+        base = self.python_requires["pyreq"].module.BaseConan
         if self.settings.os == "Windows":
             del self.options.fPIC
-
-    def layout(self):
-        cmake_layout(self)
-
+    
+    def requirements(self):
+        base = self.python_requires["pyreq"].module.BaseConan
+        base.requirements(self)
+    
+    def package_info(self):
+        self.cpp_info.libs = ["dot"]
+    
     def generate(self):
-        tc = CMakeToolchain(self)
+        base = self.python_requires["pyreq"].module.BaseConan
+        
+        tc = base.generate_toolchain(self)
         tc.generate()
+        
+        deps = base.generate_deps(self)
+        deps.generate()
 
     def build(self):
-        cmake = CMake(self)
+        base = self.python_requires["pyreq"].module.BaseConan
+        cmake = base.configure_cmake(self)
         cmake.configure()
         cmake.build()
 
     def package(self):
-        cmake = CMake(self)
+        base = self.python_requires["pyreq"].module.BaseConan
+        cmake = base.configure_cmake(self)
         cmake.install()
-
-    def package_info(self):
-        self.cpp_info.libs = ["dot"]
