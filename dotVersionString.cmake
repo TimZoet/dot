@@ -1,0 +1,1 @@
+set(DOT_VERSION 1.0.0)

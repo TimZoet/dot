@@ -26,7 +26,7 @@ class DotConan(ConanFile):
     
     def set_version(self):
         base = self.python_requires["pyreq"].module.BaseConan
-        base.set_version(self, "modules/dot/dotVersionString.cmake", "DOT_VERSION")
+        base.set_version(self, "dotVersionString.cmake", "DOT_VERSION")
     
     def init(self):
         base = self.python_requires["pyreq"].module.BaseConan
