@@ -1,5 +1,3 @@
-include(dotVersionString)
-
 set(NAME dot)
 set(TYPE module)
 set(INCLUDE_DIR "include/dot")
